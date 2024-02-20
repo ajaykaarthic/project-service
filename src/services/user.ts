@@ -10,6 +10,8 @@ import { encrypt, random } from "../helpers/encryption";
 export const register = async (req: express.Request, res: express.Response) => {
   try {
     const validUser = newUser(req.body);
+
+    // User validation
     if (validUser.error) {
       return res.status(400).json({ errorMessage: "Invalid user data" });
     }
@@ -17,7 +19,11 @@ export const register = async (req: express.Request, res: express.Response) => {
     if (existingUser) {
       return res.status(400).json({ errorMessage: "Duplicate user" });
     }
+
+    // Creating a unique random salt per user
     const salt = random();
+
+    // Createuser
     const user = await createUser({
       email: validUser.value.email,
       saltedPassword: encrypt(salt, validUser.value.password),
@@ -38,27 +44,26 @@ export const login = async (req: express.Request, res: express.Response) => {
   try {
     const validUser = loginUser(req.body);
 
+    //user validation
     if (validUser.error) {
       return res.status(400).json({ errorMessage: "Invalid login data" });
     }
-
     const user = await getUserByEmail(validUser.value.email);
-
     if (!user) {
       return res.status(404).json({ errorMessage: "User not found" });
     }
 
+    // Hash validation
     const expectedHash = encrypt(user.salt, validUser.value.password);
-
     if (user.saltedPassword != expectedHash) {
       return res.status(403).json({ errorMessage: "Wrong password" });
     }
 
     const salt = random();
     user.sessionToken = encrypt(salt, user.email);
-
     const updatedUser = await updateUserSession(user);
 
+    // Setting user cookie
     res.cookie("PROJECT-SERVICE-AUTH", user.sessionToken, {
       domain: "localhost",
       path: "/",

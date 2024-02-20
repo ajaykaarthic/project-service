@@ -1,23 +1,16 @@
 import bodyParser from "body-parser";
-import compression from "compression";
 import cookieParser from "cookie-parser";
-import cors from "cors";
 import express from "express";
 import http from "http";
 import router from "./router";
 
+// Creating an Express application instance
 const app = express();
 
-app.use(
-  cors({
-    credentials: true,
-    origin: `http://localhost:3000`,
-  })
-);
-app.use(compression());
 app.use(cookieParser());
 app.use(bodyParser.json());
 
+// Creating and starting an HTTP server using Express app instance
 const server = http.createServer(app);
 
 server.listen(3001, () => {
